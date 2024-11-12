@@ -1,0 +1,62 @@
+#include <ServoTimer2.h>
+#include <Ultrasonic.h>
+
+long microsectocentometer(long microseconds) {
+  return microseconds / 29 / 2;
+}
+
+const int triggerPin = 4; 
+const int echoPin = 5;     
+const int redLedPin = 7;    
+const int greenLedPin = 2;  
+const int buttonPin = 12;  
+const int servoPin = 8;     
+
+Ultrasonic ultrasonic(triggerPin, echoPin);
+ServoTimer2 myServo;  
+
+void setup() {
+  Serial.begin(9600);
+  
+  pinMode(redLedPin, OUTPUT);
+  pinMode(greenLedPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+  
+  myServo.attach(servoPin);  
+  myServo.write(1000);           
+  
+  pinMode(triggerPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+}
+
+void loop() {
+  float cmMsec;
+  long microsec = ultrasonic.timing();
+  cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
+
+  Serial.print("Distance: ");
+  Serial.print(cmMsec);
+  Serial.println(" cm");
+
+  if (cmMsec < 20) { 
+    digitalWrite(redLedPin, HIGH);
+    digitalWrite(greenLedPin, LOW);
+  } else {
+    digitalWrite(redLedPin, LOW);
+    digitalWrite(greenLedPin, HIGH);
+  }
+
+  if (digitalRead(greenLedPin) == HIGH && digitalRead(buttonPin) == HIGH) {
+    myServo.write(1250); 
+    Serial.println("BUTTON_PRESSED");
+  } else {
+    myServo.write(1000);   
+  }
+
+  delay(200);
+}
+
+void saveMeasurement(long distance) {
+  Serial.print("Save: ");
+  Serial.println(distance);
+}
